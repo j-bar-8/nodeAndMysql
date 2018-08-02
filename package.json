@@ -1,0 +1,20 @@
+{
+  "name": "node-and-mysql",
+  "version": "1.0.0",
+  "description": "Amazon like app",
+  "main": "bamazonCustomer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/j-bar-8/nodeAndMysql.git"
+  },
+  "author": "Joshua Barkat",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/j-bar-8/nodeAndMysql/issues"
+  },
+  "homepage": "https://github.com/j-bar-8/nodeAndMysql#readme",
+  "keywords": []
+}
