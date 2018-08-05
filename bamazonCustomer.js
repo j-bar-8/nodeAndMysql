@@ -19,10 +19,18 @@ function Product(id, product, price, department, quantity) {
     this.stock_quantity = quantity;
 }
 var newProduct = {};
+var totalPrice = 0.00
+var stockQuantity = 0
 
 // FUNCTIONS
 // =====================================================================
 function displayAllProducts () {
+    id = "";
+    quantityToBuy = 0;
+    newProduct = {};
+    totalPrice = 0.00
+    stockQuantity = 0
+    
     connection.query("SELECT * FROM products", function (err,res) {
         if (err) throw err;
         // console.log(res);
@@ -33,7 +41,7 @@ function displayAllProducts () {
             console.log(res[i].id + " || " + res[i].product_name + " || " +  res[i].price + " || " + res[i].stock_quantity);
         }
     })
-    getOrder();
+    setTimeout(getOrder, 500);
 }
 
 function getOrder () {
@@ -67,6 +75,7 @@ function getOrder () {
         quantityToBuy = answer.quantity;
         // console.log("Buy " + quantity + " of product #: " + product);
         createProductObject();
+        
     })
 }
 
@@ -75,19 +84,108 @@ function createProductObject () {
         if (err) throw err;
         // console.log(res[0].id);
         newProduct = new Product (res[0].id, res[0].product_name, res[0].price, res[0].department_name, res[0].stock_quantity);
-        console.log(newProduct.id + newProduct.product_name + newProduct.price + newProduct.department_name + newProduct.stock_quantity);
+        // console.log(newProduct.id + newProduct.product_name + newProduct.price + newProduct.department_name + newProduct.stock_quantity);
+        totalPrice = newProduct.price * quantityToBuy;
+        stockQuantity = newProduct.stock_quantity - quantityToBuy;
+        // console.log(newProduct.price + quantityToBuy + newProduct.stock_quantity)
+        // console.log(totalPrice);
+        // console.log(stockQuantity);
+        placeOrder();
     })
 }
 
 function placeOrder () {
-    console.log ("Hit placeOrder" + "quantity: " + quantity + "product: " + id);
-    console.log (id - 1 );
+    if (newProduct.stock_quantity < quantityToBuy) {
+        console.log("We only have " + newProduct.stock_quantity);
+        console.log("Pick a different amount");
+        setTimeout(displayAllProducts, 1000);
+    } else {
+        inquirer.prompt({
+            name: "action", 
+            type: "list",
+            message: "Your Total is $" + totalPrice,
+            choices: [
+                "Checkout",
+                "Change Order",
+                "Leave"
+            ]
+        }) .then(function(answer) {
+            switch (answer.action) {
+                case "Checkout":
+                    checkout();
+                    break;
+                case "Change Order":
+                    displayAllProducts();
+                    break;
+                case "Leave":
+                    console.log("Goodbye!")
+                    connection.end();
+    
+            }
+        })
+    }
+    
+}
+function checkout () {
+    connection.query(
+        "UPDATE products SET ? WHERE ?",
+        [
+          {
+            stock_quantity: stockQuantity
+          },
+          {
+            id: id
+          }
+        ],
+        function(err, res) {
+            if (err) throw err; 
+            inquirer.prompt({
+                name: "action", 
+                type: "list",
+                message: "Your order was placed",
+                choices: [
+                    "Continue Shopping",
+                    "Leave"
+                ]
+            }) .then(function(answer) {
+                switch (answer.action) {
+                    case "Continue Shopping":
+                        displayAllProducts();
+                        break;
+                    case "Leave":
+                        console.log("Goodbye!")
+                        connection.end();
+        
+                }
+            })
+        }
+      );
 
 }
+
 // PROCESS
 // =====================================================================
 connection.connect(function(err) {
     if (err) throw err;
     // console.log("Connected to Database");
-    displayAllProducts();
+    inquirer.prompt({
+        name: "action", 
+        type: "list",
+        message: "Welcome to Bamazon!",
+        choices: [
+            "View Products",
+            "Leave"
+        ]
+    }) .then(function(answer) {
+        switch (answer.action) {
+            case "View Products":
+                displayAllProducts();
+                break;
+
+            case "Leave":
+                console.log("Goodbye!")
+                connection.end();
+
+        }
+    })
 })
